@@ -46,8 +46,19 @@ from google.genai.errors import APIError
 # Initialize Database
 db.init_db()
 
-# Resolve API Key
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("google_api_key") or ""
+def get_gemini_api_key() -> str:
+    """Resolve Gemini API key from standard environment variables with whitespace and quote stripping."""
+    raw = (
+        os.getenv("GEMINI_API_KEY")
+        or os.getenv("GOOGLE_API_KEY")
+        or os.getenv("google_api_key")
+        or os.getenv("GEMINI_KEY")
+        or ""
+    )
+    return raw.strip().strip('"').strip("'")
+
+# Resolve API Key & Default Model
+GEMINI_API_KEY = get_gemini_api_key()
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-3.5-flash")
 
 # Initialize Gemini Client if API key is present
@@ -104,11 +115,12 @@ async def startup_event():
     print(f"📁 Backend Dir:  {BASE_DIR}")
     print(f"📁 Root Dir:     {ROOT_DIR}")
     print(f"💾 Database:     {db.DB_PATH}")
-    if not GEMINI_API_KEY:
+    current_key = get_gemini_api_key()
+    if not current_key:
         print("⚠️  WARNING: GEMINI_API_KEY is not configured!")
-        print("   Please configure GEMINI_API_KEY in your cloud environment variables.")
+        print("   On Render: Go to Dashboard -> Your Service -> 'Environment' tab -> Add GEMINI_API_KEY.")
     else:
-        masked = GEMINI_API_KEY[:4] + "..." + GEMINI_API_KEY[-4:] if len(GEMINI_API_KEY) > 8 else "***"
+        masked = current_key[:4] + "..." + current_key[-4:] if len(current_key) > 8 else "***"
         print(f"🔑 GEMINI_API_KEY: Configured ({masked})")
     print(f"🤖 Default Model: {DEFAULT_MODEL}")
     print("==================================================")
@@ -120,9 +132,10 @@ def health():
 
 @app.get("/api/health")
 def health_check():
+    current_key = get_gemini_api_key()
     return {
         "status": "online",
-        "has_api_key": bool(GEMINI_API_KEY),
+        "has_api_key": bool(current_key),
         "default_model": DEFAULT_MODEL,
         "supported_models": [
             {"id": "gemini-3.5-flash", "name": "Gemini 3.5 Flash (High Quota)", "badge": "Recommended"},
@@ -194,10 +207,11 @@ def build_gemini_history(past_messages: List[Dict[str, Any]]) -> List[types.Cont
 
 @app.post("/api/chat/stream")
 async def chat_stream(req: ChatStreamRequest):
-    if not GEMINI_API_KEY:
+    active_key = get_gemini_api_key()
+    if not active_key:
         raise HTTPException(
             status_code=500,
-            detail="GEMINI_API_KEY is not configured. Please set GEMINI_API_KEY in backend/.env"
+            detail="GEMINI_API_KEY is not configured. On Render: Go to your service Dashboard -> 'Environment' tab -> add GEMINI_API_KEY and click 'Save Changes'. Locally: set GEMINI_API_KEY in your .env file."
         )
     
     # 1. Resolve or create conversation
@@ -294,7 +308,7 @@ async def chat_stream(req: ChatStreamRequest):
                     system_instruction=sys_instruction
                 )
 
-            genai_client = client or genai.Client(api_key=GEMINI_API_KEY)
+            genai_client = genai.Client(api_key=active_key)
 
             # Intelligent Quota Fallback Model Chain:
             # If active_model is throttled or quota-limited, fallback automatically!
