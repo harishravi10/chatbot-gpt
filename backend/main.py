@@ -27,7 +27,6 @@ if str(ROOT_DIR) not in sys.path:
 # Load environment variables
 load_dotenv(BASE_DIR / ".env")
 load_dotenv(ROOT_DIR / ".env")
-load_dotenv(ROOT_DIR / ",env")
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware

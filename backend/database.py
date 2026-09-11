@@ -55,7 +55,7 @@ def list_conversations() -> List[Dict[str, Any]]:
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
 
-def create_conversation(title: str = "New Chat", model: str = "gemini-3.6-flash", system_prompt: str = "") -> Dict[str, Any]:
+def create_conversation(title: str = "New Chat", model: str = "gemini-3.5-flash", system_prompt: str = "") -> Dict[str, Any]:
     conv_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
     with get_db() as conn:
