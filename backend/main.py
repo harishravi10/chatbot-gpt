@@ -321,7 +321,13 @@ async def chat_stream(req: ChatStreamRequest):
                     err_str = str(api_e).lower()
                     if "quota" in err_str or "429" in err_str or "resource_exhausted" in err_str:
                         print(f"Model {m_candidate} hit quota, trying next fallback...")
-                        yield f"data: {json.dumps({'type': 'chunk', 'token': f'> ℹ️ *Automatic Failover: {m_candidate} free-tier limit reached, streaming via backup engine...*\n\n', 'conversation_id': conv_id})}\n\n"
+                        failover_msg = f"> ℹ️ *Automatic Failover: {m_candidate} free-tier limit reached, streaming via backup engine...*\n\n"
+                        failover_payload = json.dumps({
+                            "type": "chunk",
+                            "token": failover_msg,
+                            "conversation_id": conv_id
+                        })
+                        yield f"data: {failover_payload}\n\n"
                         last_err = api_e
                         continue
                     else:
