@@ -14,19 +14,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy backend requirements and install Python dependencies
-COPY backend/requirements.txt /app/backend/requirements.txt
-RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+# Copy requirements and install dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy entire application code (backend and frontend)
+# Copy application files
+COPY main.py /app/main.py
 COPY backend /app/backend
 COPY frontend /app/frontend
 
-# Expose server port
+# Expose port
 EXPOSE 8000
 
-# Working directory inside backend
-WORKDIR /app/backend
-
-# Command to run application with Uvicorn
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# Command to start application using PORT environment variable
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

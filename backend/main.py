@@ -14,11 +14,20 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Load environment variables from backend/.env and workspace root .env/,env
-BASE_DIR = Path(__file__).parent
+# Determine directory paths safely for local and cloud environments
+BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent
+
+# Ensure both backend directory and root directory are in sys.path
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(1, str(ROOT_DIR))
+
+# Load environment variables
 load_dotenv(BASE_DIR / ".env")
-load_dotenv(BASE_DIR.parent / ".env")
-load_dotenv(BASE_DIR.parent / ",env")
+load_dotenv(ROOT_DIR / ".env")
+load_dotenv(ROOT_DIR / ",env")
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +35,11 @@ from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-import database as db
+try:
+    import database as db
+except ImportError:
+    from backend import database as db
+
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
@@ -84,6 +97,27 @@ class ChatStreamRequest(BaseModel):
     model: Optional[str] = "gemini-3.5-flash"
     system_prompt: Optional[str] = ""
     files: Optional[List[FileAttachment]] = None
+
+@app.on_event("startup")
+async def startup_event():
+    print("==================================================")
+    print("🚀 NEXA AI Server Initialized Successfully")
+    print(f"📁 Backend Dir:  {BASE_DIR}")
+    print(f"📁 Root Dir:     {ROOT_DIR}")
+    print(f"💾 Database:     {db.DB_PATH}")
+    if not GEMINI_API_KEY:
+        print("⚠️  WARNING: GEMINI_API_KEY is not configured!")
+        print("   Please configure GEMINI_API_KEY in your cloud environment variables.")
+    else:
+        masked = GEMINI_API_KEY[:4] + "..." + GEMINI_API_KEY[-4:] if len(GEMINI_API_KEY) > 8 else "***"
+        print(f"🔑 GEMINI_API_KEY: Configured ({masked})")
+    print(f"🤖 Default Model: {DEFAULT_MODEL}")
+    print("==================================================")
+
+@app.get("/health")
+def health():
+    """Standard cloud health check endpoint (Render, Railway, Docker)"""
+    return {"status": "ok"}
 
 @app.get("/api/health")
 def health_check():
@@ -345,7 +379,14 @@ async def chat_stream(req: ChatStreamRequest):
         }
     )
 
-# Static file serving for frontend
-frontend_dir = BASE_DIR.parent / "frontend"
+# Static file serving for frontend (Supports all deployment directory structures)
+frontend_dir = ROOT_DIR / "frontend"
+if not frontend_dir.exists():
+    frontend_dir = BASE_DIR.parent / "frontend"
+if not frontend_dir.exists():
+    frontend_dir = Path("frontend").resolve()
+
 if frontend_dir.exists():
     app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+else:
+    print(f"Notice: Frontend static directory not found at: {frontend_dir}")

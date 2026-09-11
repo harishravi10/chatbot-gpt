@@ -1,13 +1,17 @@
+import os
 import sqlite3
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
-DB_PATH = Path(__file__).parent / "chatbot.db"
+# Configurable database path (Supports local development & cloud persistent disks)
+DB_PATH = Path(os.getenv("DATABASE_PATH", str(Path(__file__).resolve().parent / "chatbot.db")))
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    # Ensure database directory exists
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -19,7 +23,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS conversations (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
-                model TEXT DEFAULT 'gemini-3.6-flash',
+                model TEXT DEFAULT 'gemini-3.5-flash',
                 system_prompt TEXT DEFAULT '',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
