@@ -1,0 +1,29 @@
+# Environment variables & secrets (CRITICAL: Do not commit API keys)
+.env
+,env
+backend/.env
+*.env
+
+# SQLite Database
+*.db
+backend/chatbot.db
+
+# Executables & Large Binaries
+*.exe
+backend/cloudflared.exe
+
+# Python Cache & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini

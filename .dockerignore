@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+,env
+.git
+.gitignore
+backend/cloudflared.exe
+backend/chatbot.db
+node_modules
+.DS_Store
