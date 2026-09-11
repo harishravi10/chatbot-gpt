@@ -1,127 +1,84 @@
 /**
- * NEXA AI - Futuristic 3D Reactive AI Engine & Application Controller
- * Features: Instant 3D Robot State Engine, Cosmic Orbital Universe Hub,
- * Real-time SSE Streaming with Gemini, Multimodal PC File Upload,
- * Markdown Parsing, Code Highlighting, Voice Dictation, Speech Synthesis,
- * and Automatic Quota Failover.
+ * AI Chatbot - Next-Gen Client Controller
+ * Exact layout & UI match for https://chatbotfrontend-one.vercel.app/
+ * Features: Plus Jakarta Sans design, Canvas background particles,
+ * 3D Robot state reactivity, multimodal PC file upload, and Gemini streaming.
  */
 
-// Determine API Base URL (Supports Local, Live Server, and Cloud Hosting)
+// Determine API Base URL
 const API_BASE_URL = (window.location.protocol.startsWith('http') && (window.location.port === '8000' || !['localhost', '127.0.0.1'].includes(window.location.hostname)))
   ? ''
   : 'http://127.0.0.1:8000';
-
-// System Personas
-const PERSONA_PROMPTS = {
-  default: "You are NEXA AI, an advanced, highly intelligent futuristic AI assistant. Provide structured, insightful, elegant, and actionable answers with clear formatting and code where helpful.",
-  coder: "You are NEXA AI Principal Systems Architect and Software Engineer. Write production-grade, performant, elegant code with thorough explanations, clean architecture, and modern best practices.",
-  concise: "You are NEXA AI Concise Mode. Provide direct, razor-sharp, high-density answers without pleasantries or unnecessary filler words.",
-  creative: "You are NEXA AI Creative Engine. Provide evocative descriptions, visionary ideas, deep metaphors, and compelling storytelling."
-};
 
 // Application State
 const state = {
   currentConversationId: null,
   conversations: [],
   currentModel: 'gemini-3.5-flash',
-  currentPersona: 'default',
-  currentView: 'split', // 'split' | 'robot' | 'universe'
-  visualMode: 'robot', // 'robot' | 'universe'
-  robotState: 'idle', // 'idle' | 'thinking' | 'answering'
   isStreaming: false,
   abortController: null,
   speechSynth: window.speechSynthesis || null,
   speechRecognition: null,
   isListening: false,
   currentlySpeakingBtn: null,
-  idleReturnTimer: null,
+  robotState: 'idle', // 'idle' | 'thinking' | 'answering'
+  idleTimer: null,
   attachedFiles: [] // Array of { name, type, content, size, isImage, previewUrl }
 };
 
 // DOM Elements
 const elements = {
-  // Bezel & Layout
-  consoleBezel: document.getElementById('consoleBezel'),
-  dashboardContainer: document.getElementById('dashboardContainer'),
   sidebar: document.getElementById('sidebar'),
-  mobileSidebarClose: document.getElementById('mobileSidebarClose'),
-  mobileMenuTrigger: document.getElementById('mobileMenuTrigger'),
-  workspaceStage: document.getElementById('workspaceStage'),
-  
-  // Navigation
-  navHome: document.getElementById('navHome'),
-  navChat: document.getElementById('navChat'),
-  navExplore: document.getElementById('navExplore'),
-  navTools: document.getElementById('navTools'),
-  navLibrary: document.getElementById('navLibrary'),
-  navSettings: document.getElementById('navSettings'),
-  sidebarHistoryPanel: document.getElementById('sidebarHistoryPanel'),
+  sidebarBackdrop: document.getElementById('sidebarBackdrop'),
+  openSidebarBtn: document.getElementById('openSidebarBtn'),
+  closeSidebarBtn: document.getElementById('closeSidebarBtn'),
+  newChatBtn: document.getElementById('newChatBtn'),
+  topNewChatBtn: document.getElementById('topNewChatBtn'),
   conversationsList: document.getElementById('conversationsList'),
   emptyHistoryNotice: document.getElementById('emptyHistoryNotice'),
-  newChatBtn: document.getElementById('newChatBtn'),
-  newChatIconBtn: document.getElementById('newChatIconBtn'),
-  clearAllBtn: document.getElementById('clearAllBtn'),
-  sidebarExploreCard: document.getElementById('sidebarExploreCard'),
-  exploreCardActionBtn: document.getElementById('exploreCardActionBtn'),
+  statusDot: document.getElementById('statusDot'),
+  statusText: document.getElementById('statusText'),
+  statusModelText: document.getElementById('statusModelText'),
 
-  // View Mode Tabs
-  tabSplitView: document.getElementById('tabSplitView'),
-  tabRobotView: document.getElementById('tabRobotView'),
-  tabUniverseView: document.getElementById('tabUniverseView'),
-
-  // Dropdowns & Indicators
+  // Top Nav
   modelDropdownWrapper: document.getElementById('modelDropdownWrapper'),
   modelSelectBtn: document.getElementById('modelSelectBtn'),
   modelMenu: document.getElementById('modelMenu'),
   currentModelLabel: document.getElementById('currentModelLabel'),
-  currentModelBadge: document.getElementById('currentModelBadge'),
 
-  personaDropdownWrapper: document.getElementById('personaDropdownWrapper'),
-  personaSelectBtn: document.getElementById('personaSelectBtn'),
-  personaMenu: document.getElementById('personaMenu'),
-  currentPersonaLabel: document.getElementById('currentPersonaLabel'),
-  connectionIndicator: document.getElementById('connectionIndicator'),
-
-  // Visual Hub Stage
-  visualHubStage: document.getElementById('visualHubStage'),
-  universeOrbitalSystem: document.getElementById('universeOrbitalSystem'),
-  orbitalCenterCore: document.getElementById('orbitalCenterCore'),
-  robot3dStage: document.getElementById('robot3dStage'),
-  robotViewport: document.getElementById('robotViewport'),
-  robotLayerIdle: document.getElementById('robotLayerIdle'),
-  robotLayerThinking: document.getElementById('robotLayerThinking'),
-  robotLayerAnswering: document.getElementById('robotLayerAnswering'),
-  robotStateLabel: document.getElementById('robotStateLabel'),
-  btnTestIdle: document.getElementById('btnTestIdle'),
-  btnTestThinking: document.getElementById('btnTestThinking'),
-  btnTestAnswering: document.getElementById('btnTestAnswering'),
-
-  // Chat Stream Stage
-  chatStreamStage: document.getElementById('chatStreamStage'),
+  // Viewport & Hero
   chatViewport: document.getElementById('chatViewport'),
-  welcomeHero: document.getElementById('welcomeHero'),
-  suggestionChips: document.getElementById('suggestionChips'),
-  messagesContainer: document.getElementById('messagesContainer'),
+  welcomeScreen: document.getElementById('welcomeScreen'),
+  messagesInner: document.getElementById('messagesInner'),
   scrollBottomBtn: document.getElementById('scrollBottomBtn'),
+  suggestionsGrid: document.getElementById('suggestionsGrid'),
+  heroStartBtn: document.getElementById('heroStartBtn'),
+  heroExploreBtn: document.getElementById('heroExploreBtn'),
 
-  // Input & File Controls
+  // 3D Robot Elements
+  robotDisplayImg: document.getElementById('robotDisplayImg'),
+  robotStatusText: document.getElementById('robotStatusText'),
+
+  // Controls & File Upload
   streamingControlBar: document.getElementById('streamingControlBar'),
   stopGeneratingBtn: document.getElementById('stopGeneratingBtn'),
+  inputContainerWrapper: document.getElementById('inputContainerWrapper'),
+  attachedFilesContainer: document.getElementById('attachedFilesContainer'),
+  fileUploadInput: document.getElementById('fileUploadInput'),
+  attachmentBtn: document.getElementById('attachmentBtn'),
+  voiceMicBtn: document.getElementById('voiceMicBtn'),
   promptInput: document.getElementById('promptInput'),
   sendBtn: document.getElementById('sendBtn'),
-  attachmentBtn: document.getElementById('attachmentBtn'),
-  fileUploadInput: document.getElementById('fileUploadInput'),
-  attachedFilesContainer: document.getElementById('attachedFilesContainer'),
-  voiceMicBtn: document.getElementById('voiceMicBtn')
+  bgCanvas: document.getElementById('bgCanvas')
 };
 
 /* ==========================================================================
-   Boot & Asset Preloader
+   Initialization
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  preload3DAssets();
-  initRobotStateEngine();
-  initViewModes();
+  initCanvasParticles();
+  initRobotState();
+  initSidebar();
   initFileUpload();
   initVoiceRecognition();
   initEventListeners();
@@ -129,17 +86,139 @@ document.addEventListener('DOMContentLoaded', () => {
   loadConversations();
 });
 
-function preload3DAssets() {
-  const assets = [
-    'assets/robot_idle.jpg',
-    'assets/robot_thinking.jpg',
-    'assets/robot_answering.jpg',
-    'assets/planet_explore.jpg'
-  ];
-  assets.forEach(src => {
+/* ==========================================================================
+   Interactive Background Particle Canvas
+   ========================================================================== */
+function initCanvasParticles() {
+  const canvas = elements.bgCanvas;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let width = (canvas.width = window.innerWidth);
+  let height = (canvas.height = window.innerHeight);
+
+  window.addEventListener('resize', () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  });
+
+  const particles = [];
+  const count = Math.min(Math.floor(width / 35), 35);
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      radius: Math.random() * 2 + 1,
+      color: ['rgba(66, 133, 244, 0.25)', 'rgba(147, 51, 234, 0.2)', 'rgba(52, 168, 83, 0.2)'][i % 3]
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < 0) p.x = width;
+      if (p.x > width) p.x = 0;
+      if (p.y < 0) p.y = height;
+      if (p.y > height) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const p2 = particles[j];
+        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+        if (dist < 130) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = `rgba(66, 133, 244, ${0.12 * (1 - dist / 130)})`;
+          ctx.lineWidth = 0.75;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+/* ==========================================================================
+   3D Robot Companion State Engine
+   ========================================================================== */
+function initRobotState() {
+  setRobotState('idle');
+  // Preload robot images
+  ['assets/robot_idle.jpg', 'assets/robot_thinking.jpg', 'assets/robot_answering.jpg'].forEach(src => {
     const img = new Image();
     img.src = src;
   });
+}
+
+function setRobotState(stateName) {
+  state.robotState = stateName;
+  if (state.idleTimer) {
+    clearTimeout(state.idleTimer);
+    state.idleTimer = null;
+  }
+
+  const companion = document.getElementById('floatingRobotCompanion');
+  if (companion) {
+    companion.classList.remove('thinking', 'answering');
+    if (stateName === 'thinking') companion.classList.add('thinking');
+    if (stateName === 'answering') companion.classList.add('answering');
+  }
+
+  let src = 'assets/robot_idle.jpg';
+  let label = 'Ready';
+
+  if (stateName === 'thinking') {
+    src = 'assets/robot_thinking.jpg';
+    label = 'Thinking...';
+  } else if (stateName === 'answering') {
+    src = 'assets/robot_answering.jpg';
+    label = 'Answering...';
+  }
+
+  if (elements.robotDisplayImg) {
+    elements.robotDisplayImg.src = src;
+  }
+  if (elements.robotStatusText) {
+    elements.robotStatusText.textContent = label;
+  }
+
+  // Also update active streaming assistant row avatar if present
+  const activeAssistantAvatar = document.querySelector('.message-row.assistant:last-child .message-avatar.assistant img');
+  if (activeAssistantAvatar) {
+    activeAssistantAvatar.src = src;
+  }
+}
+
+/* ==========================================================================
+   Sidebar Management
+   ========================================================================== */
+function initSidebar() {
+  elements.openSidebarBtn.addEventListener('click', () => {
+    elements.sidebar.classList.remove('closed');
+    elements.sidebarBackdrop.style.display = 'block';
+  });
+
+  elements.closeSidebarBtn.addEventListener('click', closeSidebar);
+  elements.sidebarBackdrop.addEventListener('click', closeSidebar);
+}
+
+function closeSidebar() {
+  elements.sidebar.classList.add('closed');
+  elements.sidebarBackdrop.style.display = 'none';
 }
 
 /* ==========================================================================
@@ -148,23 +227,19 @@ function preload3DAssets() {
 function initFileUpload() {
   if (!elements.attachmentBtn || !elements.fileUploadInput) return;
 
-  // Open native PC file explorer on click
   elements.attachmentBtn.addEventListener('click', () => {
     elements.fileUploadInput.click();
   });
 
-  // Handle files selected from PC
   elements.fileUploadInput.addEventListener('change', async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     for (const file of files) {
-      // Max 20MB per file
       if (file.size > 20 * 1024 * 1024) {
         alert(`File "${file.name}" exceeds 20MB limit.`);
         continue;
       }
-
       await processSelectedFile(file);
     }
 
@@ -194,7 +269,6 @@ function processSelectedFile(file) {
       };
       reader.readAsDataURL(file);
     } else {
-      // Code, text, csv, json, md
       reader.onload = () => {
         state.attachedFiles.push({
           name: file.name,
@@ -227,32 +301,20 @@ function renderAttachedFilesPreview() {
     const chip = document.createElement('div');
     chip.className = 'file-preview-chip';
 
-    const sizeKb = (file.size / 1024).toFixed(1);
-    
     let iconOrThumb = '';
     if (file.isImage && file.previewUrl) {
       iconOrThumb = `<img src="${file.previewUrl}" class="file-chip-thumb" alt="${escapeHtml(file.name)}">`;
-    } else if (file.name.endsWith('.py')) {
-      iconOrThumb = `<div class="file-chip-icon"><i class="fa-brands fa-python"></i></div>`;
-    } else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
-      iconOrThumb = `<div class="file-chip-icon"><i class="fa-brands fa-js"></i></div>`;
-    } else if (file.name.endsWith('.pdf')) {
-      iconOrThumb = `<div class="file-chip-icon"><i class="fa-solid fa-file-pdf"></i></div>`;
-    } else if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
-      iconOrThumb = `<div class="file-chip-icon"><i class="fa-solid fa-table"></i></div>`;
     } else {
       iconOrThumb = `<div class="file-chip-icon"><i class="fa-solid fa-file-code"></i></div>`;
     }
 
+    const sizeKb = (file.size / 1024).toFixed(1);
+
     chip.innerHTML = `
       ${iconOrThumb}
-      <div class="file-chip-meta">
-        <span class="file-chip-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
-        <span class="file-chip-size">${sizeKb} KB</span>
-      </div>
-      <button class="file-chip-remove" data-index="${index}" title="Remove file">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <span style="font-weight:600;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(file.name)}</span>
+      <span style="color:var(--text-muted);font-size:11px;">${sizeKb} KB</span>
+      <button class="file-chip-remove" data-index="${index}" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
     `;
 
     chip.querySelector('.file-chip-remove').addEventListener('click', (e) => {
@@ -273,108 +335,6 @@ function updateSendButtonState() {
 }
 
 /* ==========================================================================
-   Fast 3D Robot State Machine
-   ========================================================================== */
-function initRobotStateEngine() {
-  setRobotState('idle');
-
-  if (elements.btnTestIdle) elements.btnTestIdle.addEventListener('click', () => setRobotState('idle'));
-  if (elements.btnTestThinking) elements.btnTestThinking.addEventListener('click', () => setRobotState('thinking'));
-  if (elements.btnTestAnswering) elements.btnTestAnswering.addEventListener('click', () => setRobotState('answering'));
-}
-
-function setRobotState(newState) {
-  state.robotState = newState;
-
-  if (state.idleReturnTimer) {
-    clearTimeout(state.idleReturnTimer);
-    state.idleReturnTimer = null;
-  }
-
-  // Clear active classes
-  elements.robotLayerIdle.classList.remove('active');
-  elements.robotLayerThinking.classList.remove('active');
-  elements.robotLayerAnswering.classList.remove('active');
-
-  elements.robot3dStage.classList.remove('state-idle', 'state-thinking', 'state-answering');
-
-  [elements.btnTestIdle, elements.btnTestThinking, elements.btnTestAnswering].forEach(btn => {
-    if (btn) btn.classList.remove('active');
-  });
-
-  if (newState === 'thinking') {
-    elements.robotLayerThinking.classList.add('active');
-    elements.robot3dStage.classList.add('state-thinking');
-    if (elements.btnTestThinking) elements.btnTestThinking.classList.add('active');
-    elements.robotStateLabel.textContent = "Status: Analyzing & Reasoning";
-    showRobotViewport();
-
-  } else if (newState === 'answering') {
-    elements.robotLayerAnswering.classList.add('active');
-    elements.robot3dStage.classList.add('state-answering');
-    if (elements.btnTestAnswering) elements.btnTestAnswering.classList.add('active');
-    elements.robotStateLabel.textContent = "Status: Transmitting Solution";
-    showRobotViewport();
-
-  } else {
-    // Idle
-    elements.robotLayerIdle.classList.add('active');
-    elements.robot3dStage.classList.add('state-idle');
-    if (elements.btnTestIdle) elements.btnTestIdle.classList.add('active');
-    elements.robotStateLabel.textContent = "Mode: 3D Assistant Ready";
-  }
-}
-
-function showRobotViewport() {
-  state.visualMode = 'robot';
-  elements.robot3dStage.classList.remove('hidden');
-  elements.universeOrbitalSystem.classList.add('hidden');
-}
-
-function showUniverseViewport() {
-  state.visualMode = 'universe';
-  elements.universeOrbitalSystem.classList.remove('hidden');
-  elements.robot3dStage.classList.add('hidden');
-}
-
-/* ==========================================================================
-   View Mode Management
-   ========================================================================== */
-function initViewModes() {
-  elements.tabSplitView.addEventListener('click', () => setViewMode('split'));
-  elements.tabRobotView.addEventListener('click', () => setViewMode('robot'));
-  elements.tabUniverseView.addEventListener('click', () => setViewMode('universe'));
-
-  elements.orbitalCenterCore.addEventListener('click', () => {
-    showRobotViewport();
-  });
-}
-
-function setViewMode(mode) {
-  state.currentView = mode;
-  elements.tabSplitView.classList.toggle('active', mode === 'split');
-  elements.tabRobotView.classList.toggle('active', mode === 'robot');
-  elements.tabUniverseView.classList.toggle('active', mode === 'universe');
-
-  elements.workspaceStage.classList.remove('view-robot-only', 'view-universe-only');
-
-  if (mode === 'robot') {
-    elements.workspaceStage.classList.add('view-robot-only');
-    showRobotViewport();
-  } else if (mode === 'universe') {
-    elements.workspaceStage.classList.add('view-universe-only');
-    showUniverseViewport();
-  } else {
-    // Split View
-    if (state.visualMode === 'universe') {
-      showUniverseViewport();
-    } else {
-      showRobotViewport();
-    }
-  }
-}
-
-/* ==========================================================================
    Backend Health Check
    ========================================================================== */
 async function checkBackendHealth() {
@@ -382,23 +342,22 @@ async function checkBackendHealth() {
     const res = await fetch(`${API_BASE_URL}/api/health`);
     if (res.ok) {
       const data = await res.json();
-      elements.connectionIndicator.innerHTML = `
-        <span class="status-pulse-dot"></span>
-        <span class="status-text">${data.status === 'online' ? 'Gemini Active' : 'Connected'}</span>
-      `;
+      elements.statusDot.className = 'status-dot online';
+      elements.statusText.textContent = 'Backend: Online';
+      if (elements.statusModelText) {
+        elements.statusModelText.textContent = data.default_model || 'Gemini 3.5 Flash';
+      }
     } else {
-      throw new Error("API error");
+      throw new Error("Bad response");
     }
   } catch (err) {
-    elements.connectionIndicator.innerHTML = `
-      <span class="status-pulse-dot" style="background: #ef4444; box-shadow: 0 0 8px #ef4444;"></span>
-      <span class="status-text" style="color: #f87171;">Offline</span>
-    `;
+    elements.statusDot.className = 'status-dot offline';
+    elements.statusText.textContent = 'Backend: Offline';
   }
 }
 
 /* ==========================================================================
-   Conversation Management
+   Conversations History
    ========================================================================== */
 async function loadConversations() {
   try {
@@ -413,7 +372,6 @@ async function loadConversations() {
 
 function renderConversationsList() {
   elements.conversationsList.innerHTML = '';
-  
   if (!state.conversations || state.conversations.length === 0) {
     elements.emptyHistoryNotice.style.display = 'block';
     return;
@@ -426,17 +384,14 @@ function renderConversationsList() {
     item.setAttribute('data-id', conv.id);
 
     item.innerHTML = `
-      <i class="fa-regular fa-message"></i>
       <span class="conv-title" title="${escapeHtml(conv.title)}">${escapeHtml(conv.title)}</span>
-      <button class="delete-conv-btn" title="Delete"><i class="fa-solid fa-xmark"></i></button>
+      <button class="delete-conv-btn" title="Delete conversation"><i class="fa-solid fa-xmark"></i></button>
     `;
 
     item.addEventListener('click', (e) => {
       if (e.target.closest('.delete-conv-btn')) return;
       selectConversation(conv.id);
-      if (window.innerWidth <= 860) {
-        elements.sidebar.classList.remove('mobile-open');
-      }
+      closeSidebar();
     });
 
     const delBtn = item.querySelector('.delete-conv-btn');
@@ -458,19 +413,19 @@ async function selectConversation(convId) {
     const res = await fetch(`${API_BASE_URL}/api/conversations/${convId}`);
     if (!res.ok) throw new Error("Conversation not found");
     const data = await res.json();
-
     if (data.model) setModel(data.model);
     renderMessages(data.messages || []);
   } catch (err) {
-    console.error("Failed to load conversation detail:", err);
+    console.error("Failed to load conversation:", err);
   }
 }
 
 function startNewChat() {
   if (state.isStreaming) return;
   state.currentConversationId = null;
-  elements.messagesContainer.innerHTML = '';
-  elements.welcomeHero.style.display = 'block';
+  elements.messagesInner.innerHTML = '';
+  elements.messagesInner.style.display = 'none';
+  elements.welcomeScreen.style.display = 'flex';
   elements.promptInput.value = '';
   elements.promptInput.style.height = 'auto';
   state.attachedFiles = [];
@@ -482,48 +437,34 @@ function startNewChat() {
 }
 
 async function deleteConversation(convId) {
-  if (!confirm("Delete this transmission transcript?")) return;
+  if (!confirm("Delete this conversation?")) return;
   try {
     const res = await fetch(`${API_BASE_URL}/api/conversations/${convId}`, {
       method: 'DELETE'
     });
     if (res.ok) {
-      if (state.currentConversationId === convId) {
-        startNewChat();
-      }
+      if (state.currentConversationId === convId) startNewChat();
       await loadConversations();
     }
   } catch (err) {
-    console.error("Delete conversation failed:", err);
-  }
-}
-
-async function clearAllConversations() {
-  if (!confirm("Purge all conversation transcripts? This cannot be undone.")) return;
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/conversations`, {
-      method: 'DELETE'
-    });
-    if (res.ok) {
-      startNewChat();
-      await loadConversations();
-    }
-  } catch (err) {
-    console.error("Clear all failed:", err);
+    console.error("Failed to delete chat:", err);
   }
 }
 
 /* ==========================================================================
-   Chat Message Rendering & Layout
+   Chat Messages & Layout
    ========================================================================== */
 function renderMessages(messages) {
-  elements.messagesContainer.innerHTML = '';
+  elements.messagesInner.innerHTML = '';
   if (!messages || messages.length === 0) {
-    elements.welcomeHero.style.display = 'block';
+    elements.welcomeScreen.style.display = 'flex';
+    elements.messagesInner.style.display = 'none';
     setRobotState('idle');
     return;
   }
-  elements.welcomeHero.style.display = 'none';
+
+  elements.welcomeScreen.style.display = 'none';
+  elements.messagesInner.style.display = 'flex';
 
   messages.forEach(msg => {
     appendMessageCard(msg.role, msg.content, msg.id, false);
@@ -533,42 +474,31 @@ function renderMessages(messages) {
 }
 
 function appendMessageCard(role, content, msgId = null, isStreaming = false, files = null) {
-  elements.welcomeHero.style.display = 'none';
+  elements.welcomeScreen.style.display = 'none';
+  elements.messagesInner.style.display = 'flex';
 
   const row = document.createElement('div');
   row.className = `message-row ${role}`;
   if (msgId) row.id = `msg-${msgId}`;
 
-  // Avatar
+  // Avatar matching Vercel
   if (role === 'assistant') {
-    const starEmblem = document.createElement('div');
-    starEmblem.className = 'assistant-star-emblem';
-    starEmblem.innerHTML = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-        <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
-      </svg>
-    `;
-    row.appendChild(starEmblem);
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar assistant';
+    avatar.innerHTML = `<img src="assets/robot_idle.jpg" alt="AI">`;
+    row.appendChild(avatar);
   }
 
-  const bodyWrapper = document.createElement('div');
-  bodyWrapper.className = 'message-body-wrapper';
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble';
 
-  if (role === 'user') {
-    const userTag = document.createElement('div');
-    userTag.className = 'user-avatar-tag';
-    userTag.innerHTML = '<i class="fa-solid fa-user"></i>';
-    bodyWrapper.appendChild(userTag);
-  }
-
-  // Attached files badges inside user message
+  // Files preview inside user bubble
   if (role === 'user' && files && files.length > 0) {
     const filesWrap = document.createElement('div');
-    filesWrap.className = 'message-attached-files';
     filesWrap.style.display = 'flex';
     filesWrap.style.flexWrap = 'wrap';
     filesWrap.style.gap = '6px';
-    filesWrap.style.marginBottom = '8px';
+    filesWrap.style.marginBottom = '6px';
 
     files.forEach(f => {
       if (f.isImage && f.previewUrl) {
@@ -577,45 +507,49 @@ function appendMessageCard(role, content, msgId = null, isStreaming = false, fil
         img.style.maxWidth = '180px';
         img.style.maxHeight = '140px';
         img.style.borderRadius = '8px';
-        img.style.border = '1px solid rgba(255,255,255,0.2)';
         filesWrap.appendChild(img);
       } else {
         const badge = document.createElement('span');
-        badge.style.fontSize = '0.72rem';
-        badge.style.padding = '3px 8px';
+        badge.style.fontSize = '11.5px';
+        badge.style.padding = '2px 8px';
         badge.style.borderRadius = '6px';
-        badge.style.background = 'rgba(56, 189, 248, 0.2)';
-        badge.style.border = '1px solid rgba(56, 189, 248, 0.4)';
-        badge.style.color = '#38bdf8';
+        badge.style.background = 'rgba(255,255,255,0.15)';
         badge.innerHTML = `<i class="fa-solid fa-paperclip"></i> ${escapeHtml(f.name)}`;
         filesWrap.appendChild(badge);
       }
     });
-    bodyWrapper.appendChild(filesWrap);
+    bubble.appendChild(filesWrap);
   }
 
   const contentBox = document.createElement('div');
-  contentBox.className = 'message-content';
+  contentBox.className = 'markdown-content';
 
   if (role === 'assistant') {
-    contentBox.innerHTML = renderMarkdown(content) + (isStreaming ? '<span class="streaming-cursor"></span>' : '');
+    contentBox.innerHTML = renderMarkdown(content) + (isStreaming ? '<span class="typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>' : '');
   } else {
     contentBox.textContent = content;
   }
 
-  bodyWrapper.appendChild(contentBox);
+  bubble.appendChild(contentBox);
 
-  // Assistant actions
+  // Message Actions for Assistant
   if (role === 'assistant' && !isStreaming && content) {
     const actions = createMessageActions(content);
-    bodyWrapper.appendChild(actions);
+    bubble.appendChild(actions);
   }
 
-  row.appendChild(bodyWrapper);
-  elements.messagesContainer.appendChild(row);
+  row.appendChild(bubble);
 
+  if (role === 'user') {
+    const userAvatar = document.createElement('div');
+    userAvatar.className = 'message-avatar user';
+    userAvatar.innerHTML = '<i class="fa-solid fa-user" style="font-size: 13px;"></i>';
+    row.appendChild(userAvatar);
+  }
+
+  elements.messagesInner.appendChild(row);
   attachCodeBlockEvents(contentBox);
-  return { row, contentBox, bodyWrapper };
+  return { row, contentBox, bubble };
 }
 
 function createMessageActions(text) {
@@ -623,7 +557,7 @@ function createMessageActions(text) {
   actions.className = 'message-actions';
 
   const copyBtn = document.createElement('button');
-  copyBtn.className = 'action-btn';
+  copyBtn.className = 'msg-action-btn';
   copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(text).then(() => {
@@ -635,7 +569,7 @@ function createMessageActions(text) {
   });
 
   const speakBtn = document.createElement('button');
-  speakBtn.className = 'action-btn';
+  speakBtn.className = 'msg-action-btn';
   speakBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Read';
   speakBtn.addEventListener('click', () => {
     toggleSpeech(text, speakBtn);
@@ -647,52 +581,46 @@ function createMessageActions(text) {
 }
 
 /* ==========================================================================
-   Real-Time Streaming Engine with 3D Robot State Reactivity & File Upload
+   Real-Time Streaming Engine with 3D Robot State Reactivity
    ========================================================================== */
 async function sendMessage(textToSend = null) {
   let text = textToSend || elements.promptInput.value.trim();
   const attachedFiles = [...state.attachedFiles];
 
-  // If user only uploaded files without text, provide standard prompt
   if (!text && attachedFiles.length > 0) {
     text = "Please analyze and explain the attached files.";
   }
 
   if (!text || state.isStreaming) return;
 
-  // Reset input field & attached files
+  // Reset input & files
   elements.promptInput.value = '';
   elements.promptInput.style.height = 'auto';
   state.attachedFiles = [];
   renderAttachedFilesPreview();
   updateSendButtonState();
 
-  // Append user message with attached files
   appendMessageCard('user', text, null, false, attachedFiles);
   scrollToBottom();
 
-  // 1. Trigger Instant 3D Robot THINKING State (0ms latency)
+  // 1. Trigger 3D Robot Thinking State
   setRobotState('thinking');
 
   state.isStreaming = true;
   elements.streamingControlBar.style.display = 'flex';
   state.abortController = new AbortController();
 
-  const { contentBox, bodyWrapper } = appendMessageCard('assistant', '', null, true);
+  const { contentBox, bubble } = appendMessageCard('assistant', '', null, true);
   scrollToBottom();
 
   let accumulatedText = '';
   let hasTransitionedToAnswering = false;
 
   try {
-    const systemPrompt = PERSONA_PROMPTS[state.currentPersona] || '';
-
-    // Prepare payload with files
     const payload = {
       conversation_id: state.currentConversationId,
       message: text,
       model: state.currentModel,
-      system_prompt: systemPrompt,
       files: attachedFiles.map(f => ({
         name: f.name,
         type: f.type,
@@ -739,20 +667,20 @@ async function sendMessage(textToSend = null) {
           } else if (event.type === 'chunk') {
             accumulatedText += event.token;
 
-            // 2. As soon as answers begin streaming, trigger 3D Robot ANSWERING State!
+            // 2. Transition 3D Robot to Answering State
             if (!hasTransitionedToAnswering) {
               hasTransitionedToAnswering = true;
               setRobotState('answering');
             }
 
-            contentBox.innerHTML = renderMarkdown(accumulatedText) + '<span class="streaming-cursor"></span>';
+            contentBox.innerHTML = renderMarkdown(accumulatedText) + '<span class="typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>';
             attachCodeBlockEvents(contentBox);
             autoScrollNearBottom();
           } else if (event.type === 'done') {
             state.currentConversationId = event.conversation_id;
             loadConversations();
           } else if (event.type === 'error') {
-            accumulatedText += `\n\n> ⚠️ **Error:** ${event.error}`;
+            accumulatedText += `\n\n> ⚠️ **Notice:** ${event.error}`;
             contentBox.innerHTML = renderMarkdown(accumulatedText);
           }
         } catch (parseErr) {
@@ -766,11 +694,11 @@ async function sendMessage(textToSend = null) {
     attachCodeBlockEvents(contentBox);
 
     const actions = createMessageActions(accumulatedText);
-    bodyWrapper.appendChild(actions);
+    bubble.appendChild(actions);
 
   } catch (err) {
     if (err.name === 'AbortError') {
-      contentBox.innerHTML = renderMarkdown(accumulatedText + '\n\n*(Transmission halted)*');
+      contentBox.innerHTML = renderMarkdown(accumulatedText + '\n\n*(Generation stopped)*');
     } else {
       contentBox.innerHTML = renderMarkdown(`> ⚠️ **Notice:** ${err.message}`);
     }
@@ -781,7 +709,7 @@ async function sendMessage(textToSend = null) {
     elements.promptInput.focus();
     scrollToBottom();
 
-    state.idleReturnTimer = setTimeout(() => {
+    state.idleTimer = setTimeout(() => {
       setRobotState('idle');
     }, 4500);
   }
@@ -794,14 +722,11 @@ function stopGenerating() {
 }
 
 /* ==========================================================================
-   Voice Dictation
+   Voice Dictation (Speech-to-Text)
    ========================================================================== */
 function initVoiceRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    if (elements.voiceMicBtn) elements.voiceMicBtn.title = "Voice dictation not supported in this browser";
-    return;
-  }
+  if (!SpeechRecognition) return;
 
   state.speechRecognition = new SpeechRecognition();
   state.speechRecognition.continuous = false;
@@ -811,14 +736,14 @@ function initVoiceRecognition() {
   state.speechRecognition.onstart = () => {
     state.isListening = true;
     elements.voiceMicBtn.classList.add('listening');
-    elements.promptInput.placeholder = "Listening... Speak your transmission";
+    elements.promptInput.placeholder = "Listening... Speak your prompt";
   };
 
   state.speechRecognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
     elements.promptInput.value = transcript;
     elements.promptInput.style.height = 'auto';
-    elements.promptInput.style.height = `${Math.min(elements.promptInput.scrollHeight, 120)}px`;
+    elements.promptInput.style.height = `${Math.min(elements.promptInput.scrollHeight, 160)}px`;
     updateSendButtonState();
   };
 
@@ -837,17 +762,14 @@ function initVoiceRecognition() {
 function stopListening() {
   state.isListening = false;
   if (elements.voiceMicBtn) elements.voiceMicBtn.classList.remove('listening');
-  elements.promptInput.placeholder = "Ask anything...";
+  elements.promptInput.placeholder = "Type your message here...";
 }
 
 /* ==========================================================================
    Speech Synthesis
    ========================================================================== */
 function toggleSpeech(text, buttonElement) {
-  if (!state.speechSynth) {
-    alert("Speech Synthesis is not supported in this browser.");
-    return;
-  }
+  if (!state.speechSynth) return;
 
   if (state.speechSynth.speaking) {
     state.speechSynth.cancel();
@@ -912,7 +834,7 @@ function renderMarkdown(md) {
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<span class="inline-code">$1</span>');
   html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
 
   html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<ul><li>$1</li></ul>');
@@ -930,14 +852,14 @@ function renderMarkdown(md) {
     const escapedCode = escapeHtml(block.code);
     const blockMarkup = `
       <div class="code-block-wrapper">
-        <div class="code-block-header">
-          <span class="code-language-tag">${escapeHtml(block.lang)}</span>
+        <div class="code-header">
+          <span>${escapeHtml(block.lang)}</span>
           <button class="copy-code-btn" data-code="${encodeURIComponent(block.code)}">
             <i class="fa-regular fa-copy"></i>
-            <span>Copy code</span>
+            <span>Copy</span>
           </button>
         </div>
-        <pre><code class="language-${escapeHtml(block.lang)}">${escapedCode}</code></pre>
+        <pre class="code-block"><code>${escapedCode}</code></pre>
       </div>
     `;
     html = html.replace(placeholder, blockMarkup);
@@ -963,11 +885,9 @@ function attachCodeBlockEvents(container) {
       e.stopPropagation();
       const rawCode = decodeURIComponent(btn.getAttribute('data-code'));
       navigator.clipboard.writeText(rawCode).then(() => {
-        btn.classList.add('copied');
         btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copied!</span>';
         setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = '<i class="fa-regular fa-copy"></i> <span>Copy code</span>';
+          btn.innerHTML = '<i class="fa-regular fa-copy"></i> <span>Copy</span>';
         }, 2000);
       });
     };
@@ -975,7 +895,7 @@ function attachCodeBlockEvents(container) {
 }
 
 /* ==========================================================================
-   Model & Persona Selection
+   Model Selection
    ========================================================================== */
 function setModel(modelId) {
   state.currentModel = modelId;
@@ -983,24 +903,8 @@ function setModel(modelId) {
   if (item) {
     elements.modelMenu.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
     item.classList.add('active');
-    
-    const strongTitle = item.querySelector('strong').textContent;
-    elements.currentModelLabel.textContent = strongTitle;
-
-    const badge = item.querySelector('.tag-rec, .tag-std, .tag-pro');
-    if (badge) {
-      elements.currentModelBadge.textContent = badge.textContent;
-    }
-  }
-}
-
-function setPersona(personaId) {
-  state.currentPersona = personaId;
-  const item = elements.personaMenu.querySelector(`[data-persona="${personaId}"]`);
-  if (item) {
-    elements.personaMenu.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
-    item.classList.add('active');
-    elements.currentPersonaLabel.textContent = item.querySelector('strong').textContent;
+    const title = item.querySelector('.dropdown-item-title').textContent;
+    elements.currentModelLabel.textContent = title;
   }
 }
 
@@ -1027,28 +931,33 @@ function autoScrollNearBottom() {
    ========================================================================== */
 function initEventListeners() {
   elements.newChatBtn.addEventListener('click', startNewChat);
-  elements.newChatIconBtn.addEventListener('click', startNewChat);
+  elements.topNewChatBtn.addEventListener('click', startNewChat);
 
-  window.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      startNewChat();
+  // Suggestions Grid
+  elements.suggestionsGrid.addEventListener('click', (e) => {
+    const card = e.target.closest('.suggestion-card');
+    if (!card) return;
+    const prompt = card.getAttribute('data-prompt');
+    if (prompt) sendMessage(prompt);
+  });
+
+  // Hero Buttons
+  elements.heroStartBtn.addEventListener('click', () => {
+    elements.promptInput.focus();
+  });
+
+  elements.heroExploreBtn.addEventListener('click', () => {
+    const firstCard = elements.suggestionsGrid.querySelector('.suggestion-card');
+    if (firstCard) {
+      const prompt = firstCard.getAttribute('data-prompt');
+      sendMessage(prompt);
     }
   });
 
-  elements.mobileMenuTrigger.addEventListener('click', () => {
-    elements.sidebar.classList.add('mobile-open');
-  });
-
-  elements.mobileSidebarClose.addEventListener('click', () => {
-    elements.sidebar.classList.remove('mobile-open');
-  });
-
-  elements.clearAllBtn.addEventListener('click', clearAllConversations);
-
+  // Prompt Auto-expand & Send
   elements.promptInput.addEventListener('input', () => {
     elements.promptInput.style.height = 'auto';
-    elements.promptInput.style.height = `${Math.min(elements.promptInput.scrollHeight, 120)}px`;
+    elements.promptInput.style.height = `${Math.min(elements.promptInput.scrollHeight, 160)}px`;
     updateSendButtonState();
   });
 
@@ -1064,33 +973,10 @@ function initEventListeners() {
   elements.sendBtn.addEventListener('click', () => sendMessage());
   elements.stopGeneratingBtn.addEventListener('click', stopGenerating);
 
-  elements.suggestionChips.addEventListener('click', (e) => {
-    const chip = e.target.closest('.suggestion-chip');
-    if (!chip) return;
-    const prompt = chip.getAttribute('data-prompt');
-    if (prompt) sendMessage(prompt);
-  });
-
-  const orbitNodes = document.querySelectorAll('.orbit-node');
-  orbitNodes.forEach(node => {
-    node.addEventListener('click', () => {
-      const prompt = node.getAttribute('data-prompt');
-      if (prompt) {
-        sendMessage(prompt);
-      }
-    });
-  });
-
-  elements.sidebarExploreCard.addEventListener('click', () => {
-    setViewMode('universe');
-  });
-
-  elements.scrollBottomBtn.addEventListener('click', scrollToBottom);
-
+  // Model Dropdown
   elements.modelSelectBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     elements.modelDropdownWrapper.classList.toggle('open');
-    elements.personaDropdownWrapper.classList.remove('open');
   });
 
   elements.modelMenu.addEventListener('click', (e) => {
@@ -1101,22 +987,15 @@ function initEventListeners() {
     elements.modelDropdownWrapper.classList.remove('open');
   });
 
-  elements.personaSelectBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    elements.personaDropdownWrapper.classList.toggle('open');
-    elements.modelDropdownWrapper.classList.remove('open');
-  });
-
-  elements.personaMenu.addEventListener('click', (e) => {
-    const item = e.target.closest('.dropdown-item');
-    if (!item) return;
-    const persona = item.getAttribute('data-persona');
-    setPersona(persona);
-    elements.personaDropdownWrapper.classList.remove('open');
-  });
-
   window.addEventListener('click', () => {
     elements.modelDropdownWrapper.classList.remove('open');
-    elements.personaDropdownWrapper.classList.remove('open');
   });
+
+  // Scroll Bottom Button
+  elements.chatViewport.addEventListener('scroll', () => {
+    const isUp = elements.chatViewport.scrollHeight - elements.chatViewport.scrollTop - elements.chatViewport.clientHeight > 180;
+    elements.scrollBottomBtn.style.display = isUp ? 'flex' : 'none';
+  });
+
+  elements.scrollBottomBtn.addEventListener('click', scrollToBottom);
 }

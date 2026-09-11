@@ -1,517 +1,358 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXA AI - Your AI. Your universe.</title>
-  <meta name="description" content="NEXA AI - Futuristic AI assistant with real-time 3D reactive companion, cosmic orbital hub, and fast Gemini streaming intelligence.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>AI Chatbot (Gemini)</title>
+  <meta name="description" content="A modern, responsive AI chatbot powered by Google Gemini and 3D Interactive AI.">
   
-  <!-- Modern Google Fonts: Outfit, Inter, and JetBrains Mono -->
+  <!-- Plus Jakarta Sans & Fira Code (Matching https://chatbotfrontend-one.vercel.app/) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   
-  <!-- FontAwesome for futuristic icons -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Ambient Cockpit Background Glows -->
-  <div class="cockpit-ambient-lights">
-    <div class="ambient-glow glow-blue"></div>
-    <div class="ambient-glow glow-purple"></div>
-    <div class="ambient-glow glow-cyan"></div>
-    <div class="ambient-dust-particles"></div>
-  </div>
+  <div class="app-layout">
+    <!-- Interactive Particle / Wave Canvas -->
+    <canvas id="bgCanvas"></canvas>
 
-  <!-- Futuristic Hardware Console Frame / Bezel -->
-  <div class="cockpit-console-bezel" id="consoleBezel">
-    
-    <!-- Top Console Hardware Bar with Sensors & Camera -->
-    <div class="bezel-top-sensor-bar">
-      <div class="bezel-screw left"></div>
-      <div class="hardware-sensor-cluster">
-        <span class="sensor-dot"></span>
-        <span class="camera-lens"></span>
-        <span class="sensor-dot"></span>
-      </div>
-      <div class="bezel-brand-text">NEXA SYSTEM V4.5 // QUANTUM CORE</div>
-      <div class="bezel-screw right"></div>
-    </div>
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- Main Dashboard Container -->
-    <div class="nexa-dashboard-container" id="dashboardContainer">
-      
-      <!-- Left Sidebar -->
-      <aside class="nexa-sidebar" id="sidebar">
-        
-        <!-- Brand Logo Header -->
-        <div class="sidebar-brand">
-          <div class="brand-star-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="url(#starGradient)"/>
-              <defs>
-                <linearGradient id="starGradient" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#38BDF8"/>
-                  <stop offset="1" stop-color="#818CF8"/>
-                </linearGradient>
-              </defs>
+    <!-- Collapsible Sidebar matching Vercel -->
+    <aside class="sidebar closed" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge">
+          <div class="brand-logo-rainbow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot">
+              <path d="M12 8V4H8"></path>
+              <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+              <path d="M2 14h2"></path>
+              <path d="M20 14h2"></path>
+              <path d="M15 13v2"></path>
+              <path d="M9 13v2"></path>
             </svg>
           </div>
-          <div class="brand-meta">
-            <span class="brand-title">NEXA AI</span>
-            <span class="brand-tagline">Your AI. Your universe.</span>
-          </div>
-          <button class="mobile-sidebar-close" id="mobileSidebarClose" aria-label="Close menu">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+          <span>AI Chatbot</span>
         </div>
+        <button class="sidebar-action-btn" id="closeSidebarBtn" title="Close sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M9 3v18"></path>
+            <path d="m16 15-3-3 3-3"></path>
+          </svg>
+        </button>
+      </div>
 
-        <!-- Primary Navigation List -->
-        <nav class="sidebar-nav" aria-label="Main Navigation">
-          <button class="nav-btn active" data-nav="home" id="navHome">
-            <i class="fa-solid fa-house"></i>
-            <span>Home</span>
-          </button>
-          <button class="nav-btn" data-nav="chat" id="navChat">
-            <i class="fa-solid fa-message"></i>
-            <span>Chat</span>
-            <span class="nav-badge" id="chatCountBadge">Live</span>
-          </button>
-          <button class="nav-btn" data-nav="explore" id="navExplore">
-            <i class="fa-regular fa-compass"></i>
-            <span>Explore</span>
-          </button>
-          <button class="nav-btn" data-nav="tools" id="navTools">
-            <i class="fa-solid fa-screwdriver-wrench"></i>
-            <span>Tools</span>
-          </button>
-          <button class="nav-btn" data-nav="library" id="navLibrary">
-            <i class="fa-solid fa-book-bookmark"></i>
-            <span>Library</span>
-          </button>
-          <button class="nav-btn" data-nav="settings" id="navSettings">
-            <i class="fa-solid fa-gear"></i>
-            <span>Settings</span>
-          </button>
-        </nav>
+      <!-- New Chat Button -->
+      <button class="new-chat-btn" id="newChatBtn">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          <span>New chat</span>
+        </div>
+      </button>
 
-        <!-- Chat History Drawer (Collapsible) -->
-        <div class="sidebar-history-panel" id="sidebarHistoryPanel">
-          <div class="history-panel-header">
-            <span>Recent Transmissions</span>
-            <button class="icon-tiny-btn" id="newChatIconBtn" title="Start New Session">
-              <i class="fa-solid fa-plus"></i>
-            </button>
-          </div>
-          <div class="conversations-list" id="conversationsList">
-            <!-- Dynamically populated conversations -->
-          </div>
-          <div class="empty-history-notice" id="emptyHistoryNotice" style="display: none;">
-            <i class="fa-solid fa-satellite-dish"></i>
-            <p>No prior transcripts</p>
+      <!-- Chat History List -->
+      <div class="chat-history-list" id="chatHistoryList">
+        <div class="history-section-title">Recent Conversations</div>
+        <div class="conversations-list" id="conversationsList"></div>
+        <div class="empty-history-notice" id="emptyHistoryNotice" style="padding:12px 8px;color:var(--text-muted);font-size:12.5px;">
+          No conversation history yet. Start chatting!
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="backend-status-card" id="backendStatusCard">
+          <span class="status-dot online" id="statusDot"></span>
+          <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden">
+            <span style="font-weight:500;color:var(--text-primary)" id="statusText">Backend: Online</span>
+            <span style="font-size:10.5px;color:var(--text-muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden" id="statusModelText">Gemini 3.5 Flash</span>
           </div>
         </div>
+      </div>
+    </aside>
 
-        <!-- Bottom Explore Card -->
-        <div class="sidebar-explore-card" id="sidebarExploreCard">
-          <div class="explore-planet-thumb">
-            <img src="assets/planet_explore.jpg" alt="Explore Universe" id="explorePlanetImg">
-            <div class="planet-ring-aura"></div>
-          </div>
-          <div class="explore-card-info">
-            <span class="explore-card-title">Explore</span>
-            <span class="explore-card-desc">More Possibilities</span>
-          </div>
-          <button class="explore-arrow-btn" id="exploreCardActionBtn" title="Discover capabilities">
-            <i class="fa-solid fa-arrow-right"></i>
+    <!-- Main Workspace Content -->
+    <main class="main-content" id="mainContent">
+      
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <button class="sidebar-action-btn" id="openSidebarBtn" title="Open sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <path d="M9 3v18"></path>
+              <path d="m14 9 3 3-3 3"></path>
+            </svg>
           </button>
+
+          <div class="brand-title-nav">
+            <div class="brand-logo-rainbow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+                <path d="M20 3v4"></path>
+                <path d="M22 5h-4"></path>
+                <path d="M4 17v2"></path>
+                <path d="M5 18H3"></path>
+              </svg>
+            </div>
+            <span>Antigravity AI</span>
+          </div>
+
+          <!-- Model Switcher Pill -->
+          <div class="model-dropdown-wrapper" id="modelDropdownWrapper">
+            <div class="model-pill" id="modelSelectBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbc05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              </svg>
+              <span id="currentModelLabel">Gemini 3.5 Flash</span>
+              <span class="rainbow-sparkle">● High-Speed</span>
+              <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: var(--text-muted); margin-left: 4px;"></i>
+            </div>
+            <div class="dropdown-menu" id="modelMenu">
+              <div class="dropdown-item active" data-model="gemini-3.5-flash">
+                <div class="dropdown-item-title">Gemini 3.5 Flash</div>
+                <div class="dropdown-item-sub">High-Speed & Quota Guaranteed</div>
+              </div>
+              <div class="dropdown-item" data-model="gemini-3.7-flash">
+                <div class="dropdown-item-title">Gemini 3.7 Flash</div>
+                <div class="dropdown-item-sub">Next-Gen Reasoning & Vision</div>
+              </div>
+              <div class="dropdown-item" data-model="gemini-3.5-flash-lite">
+                <div class="dropdown-item-title">Gemini 3.5 Flash Lite</div>
+                <div class="dropdown-item-sub">Sub-second lightweight latency</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-      </aside>
+        <div class="nav-actions">
+          <button class="pill-action-btn" id="topNewChatBtn" title="New Chat">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="M12 5v14"></path>
+            </svg>
+            <span>New Chat</span>
+          </button>
+        </div>
+      </header>
 
-      <!-- Main Central Cockpit Area (Split: Visual Hub + Chat Stream) -->
-      <main class="nexa-workspace" id="workspace">
+      <!-- Scrollable Messages Area -->
+      <div class="messages-container" id="chatViewport">
         
-        <!-- Top Workspace Bar -->
-        <header class="workspace-header">
-          <div class="header-left">
-            <button class="mobile-menu-trigger" id="mobileMenuTrigger" aria-label="Open sidebar">
-              <i class="fa-solid fa-bars"></i>
-            </button>
-
-            <!-- Mode Switcher Tabs: Universe Hub vs 3D Robot vs Split -->
-            <div class="view-mode-tabs" role="tablist">
-              <button class="view-tab active" data-view="split" id="tabSplitView" title="Split Screen (Robot + Chat)">
-                <i class="fa-solid fa-table-columns"></i>
-                <span>Cockpit</span>
-              </button>
-              <button class="view-tab" data-view="robot" id="tabRobotView" title="Full 3D Robot View">
-                <i class="fa-solid fa-robot"></i>
-                <span>3D Companion</span>
-              </button>
-              <button class="view-tab" data-view="universe" id="tabUniverseView" title="Cosmic Orbital Universe Hub">
-                <i class="fa-solid fa-circle-nodes"></i>
-                <span>Orbital Hub</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="header-center">
-            <!-- Engine & Persona Pills -->
-            <div class="dropdown-wrapper" id="modelDropdownWrapper">
-              <button class="engine-pill-btn" id="modelSelectBtn">
-                <span class="sparkle-dot"></span>
-                <span id="currentModelLabel">Gemini 3.5 Flash</span>
-                <span class="model-badge" id="currentModelBadge">High Quota</span>
-                <i class="fa-solid fa-chevron-down caret"></i>
-              </button>
-              <div class="dropdown-menu" id="modelMenu">
-                <div class="dropdown-title">Select AI Engine</div>
-                <div class="dropdown-item active" data-model="gemini-3.5-flash">
-                  <div class="item-head"><strong>Gemini 3.5 Flash</strong><span class="tag-rec">High Quota</span></div>
-                  <div class="item-sub">Fastest speed with generous free tier quotas</div>
-                </div>
-                <div class="dropdown-item" data-model="gemini-3.7-flash">
-                  <div class="item-head"><strong>Gemini 3.7 Flash</strong><span class="tag-pro">Next-Gen</span></div>
-                  <div class="item-sub">Deep multimodal reasoning and coding brilliance</div>
-                </div>
-                <div class="dropdown-item" data-model="gemini-3.5-flash-lite">
-                  <div class="item-head"><strong>Gemini 3.5 Flash Lite</strong><span class="tag-std">Ultra Fast</span></div>
-                  <div class="item-sub">Lightweight, instant sub-second responses</div>
-                </div>
-                <div class="dropdown-item" data-model="gemini-3.6-flash">
-                  <div class="item-head"><strong>Gemini 3.6 Flash</strong><span class="tag-std">Preview</span></div>
-                  <div class="item-sub">Experimental preview model</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Persona Selector -->
-            <div class="dropdown-wrapper" id="personaDropdownWrapper">
-              <button class="engine-pill-btn" id="personaSelectBtn">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span id="currentPersonaLabel">General</span>
-                <i class="fa-solid fa-chevron-down caret"></i>
-              </button>
-              <div class="dropdown-menu" id="personaMenu">
-                <div class="dropdown-title">System Persona</div>
-                <div class="dropdown-item active" data-persona="default">
-                  <strong>General Assistant</strong>
-                  <div class="item-sub">Insightful, structured and versatile</div>
-                </div>
-                <div class="dropdown-item" data-persona="coder">
-                  <strong>Software Engineer</strong>
-                  <div class="item-sub">Clean architecture, efficient code & scripts</div>
-                </div>
-                <div class="dropdown-item" data-persona="concise">
-                  <strong>Concise & Direct</strong>
-                  <div class="item-sub">Brief responses with zero fluff</div>
-                </div>
-                <div class="dropdown-item" data-persona="creative">
-                  <strong>Creative Mind</strong>
-                  <div class="item-sub">Vivid concepts, stories & brainstorming</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="header-right">
-            <!-- Backend Status Indicator -->
-            <div class="system-status-indicator" id="connectionIndicator" title="Neural Link Status">
-              <span class="status-pulse-dot"></span>
-              <span class="status-text">Online</span>
-            </div>
-
-            <!-- New Session Button -->
-            <button class="action-circle-btn" id="newChatBtn" title="Start Fresh Chat (Ctrl+K)">
-              <i class="fa-solid fa-plus"></i>
-            </button>
-
-            <!-- Clear All Transcripts -->
-            <button class="action-circle-btn" id="clearAllBtn" title="Clear All History">
-              <i class="fa-regular fa-trash-can"></i>
-            </button>
-          </div>
-        </header>
-
-        <!-- Workspace Stage Split (Visual Stage on Left, Chat on Right) -->
-        <div class="workspace-stage" id="workspaceStage">
+        <!-- Welcome Screen (matching https://chatbotfrontend-one.vercel.app/) -->
+        <div class="welcome-screen" id="welcomeScreen">
           
-          <!-- LEFT VISUAL STAGE: 3D Robot & Cosmic Universe Hub -->
-          <section class="visual-hub-stage" id="visualHubStage">
-            
-            <!-- 1. Cosmic Orbital Universe Mode -->
-            <div class="universe-orbital-system" id="universeOrbitalSystem">
-              <div class="solar-system-ambient">
-                <div class="deep-space-stars"></div>
-                <div class="nebula-dust-cloud"></div>
-              </div>
-
-              <!-- Orbital Ellipses -->
-              <div class="orbital-ring ring-outer"></div>
-              <div class="orbital-ring ring-mid"></div>
-              <div class="orbital-ring ring-inner"></div>
-
-              <!-- Central Core Glowing Sphere -->
-              <div class="orbital-center-core" id="orbitalCenterCore" title="NEXA Core Intelligence">
-                <div class="core-plasma-ball">
-                  <div class="core-star-emblem">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="#ffffff"/>
-                    </svg>
-                  </div>
-                </div>
-                <div class="core-pulse-rings"></div>
-                <span class="core-label">NEXA CORE</span>
-              </div>
-
-              <!-- Orbiting Category Spheres (Interactive Nodes) -->
-              <!-- Top Node: Coding -->
-              <div class="orbit-node node-coding" data-category="coding" data-prompt="Explain the concept of recursion in simple terms with an example in Python." title="Explore Coding">
-                <div class="node-sphere">
-                  <i class="fa-solid fa-code"></i>
-                </div>
-                <span class="node-label">&lt;/&gt; Coding</span>
-              </div>
-
-              <!-- Right Node: Ideas -->
-              <div class="orbit-node node-ideas" data-category="ideas" data-prompt="Brainstorm 5 innovative next-generation AI features for future operating systems." title="Explore Ideas">
-                <div class="node-sphere">
-                  <i class="fa-regular fa-lightbulb"></i>
-                </div>
-                <span class="node-label">Ideas</span>
-              </div>
-
-              <!-- Left Node: Study -->
-              <div class="orbit-node node-study" data-category="study" data-prompt="Explain quantum entanglement and quantum computing principles in simple, engaging terms." title="Explore Study">
-                <div class="node-sphere">
-                  <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <span class="node-label">Study</span>
-              </div>
-
-              <!-- Bottom-Left Node: Creative -->
-              <div class="orbit-node node-creative" data-category="creative" data-prompt="Write an evocative, atmospheric sci-fi scene about an explorer entering an alien crystalline archive." title="Explore Creative">
-                <div class="node-sphere">
-                  <i class="fa-solid fa-palette"></i>
-                </div>
-                <span class="node-label">Creative</span>
-              </div>
-
-              <!-- Bottom-Right Node: Personal -->
-              <div class="orbit-node node-personal" data-category="personal" data-prompt="Create a high-performance daily routine designed for optimal deep work, energy, and wellness." title="Explore Personal">
-                <div class="node-sphere">
-                  <i class="fa-regular fa-user"></i>
-                </div>
-                <span class="node-label">Personal</span>
-              </div>
-            </div>
-
-            <!-- 2. Interactive 3D Robot Assistant Viewport -->
-            <div class="robot-3d-stage" id="robot3dStage">
-              
-              <!-- 3D Character Hologram Container -->
-              <div class="robot-character-viewport" id="robotViewport">
-                
-                <!-- Pre-cached 3D Robot State Layers (Instant 0ms swap) -->
-                <div class="robot-image-layer active" id="robotLayerIdle">
-                  <img src="assets/robot_idle.jpg" alt="NEXA Robot Idle" class="robot-img" id="imgIdle">
-                </div>
-                <div class="robot-image-layer" id="robotLayerThinking">
-                  <img src="assets/robot_thinking.jpg" alt="NEXA Robot Thinking" class="robot-img" id="imgThinking">
-                </div>
-                <div class="robot-image-layer" id="robotLayerAnswering">
-                  <img src="assets/robot_answering.jpg" alt="NEXA Robot Answering" class="robot-img" id="imgAnswering">
-                </div>
-
-                <!-- Holographic Platform & Energy Vortex Rings beneath the Robot -->
-                <div class="holographic-base-platform" id="hologramPlatform">
-                  <div class="holo-ring holo-ring-1"></div>
-                  <div class="holo-ring holo-ring-2"></div>
-                  <div class="holo-ring holo-ring-3"></div>
-                  <div class="holo-grid-plane"></div>
-                  <div class="holo-light-pillar"></div>
-                </div>
-
-                <!-- Floating Hologram State Banner -->
-                <div class="hologram-status-hud" id="hologramHud">
-                  
-                  <!-- Idle State Indicator -->
-                  <div class="hud-state-pill hud-state-idle" id="hudIdle">
-                    <span class="hud-pulse"></span>
-                    <span>1. Ready for Transmission</span>
-                  </div>
-
-                  <!-- Thinking State Holographic Card (Matches Screenshot Step 2) -->
-                  <div class="hud-thinking-card" id="hudThinking">
-                    <div class="thinking-header">
-                      <div class="thinking-dots">
-                        <span></span><span></span><span></span>
-                      </div>
-                      <span class="thinking-title">Thinking...</span>
-                    </div>
-                    <p class="thinking-desc">Analyzing your question and searching for the best answer...</p>
-                  </div>
-
-                  <!-- Answering State Holographic Pill (Matches Screenshot Step 3) -->
-                  <div class="hud-state-pill hud-state-answering" id="hudAnswering">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>3. Solution Delivered</span>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Quick Robot State Tester / Controls -->
-              <div class="robot-controls-bar">
-                <span class="state-indicator-badge" id="robotStateBadge">
-                  <span class="badge-dot"></span>
-                  <span id="robotStateLabel">Mode: 3D Assistant Ready</span>
-                </span>
-                <div class="robot-quick-triggers">
-                  <button class="trigger-btn active" data-state="idle" id="btnTestIdle" title="Idle State">Ready</button>
-                  <button class="trigger-btn" data-state="thinking" id="btnTestThinking" title="Thinking State">Think</button>
-                  <button class="trigger-btn" data-state="answering" id="btnTestAnswering" title="Answering State">Answer</button>
-                </div>
-              </div>
-
-            </div>
-
-          </section>
-
-          <!-- RIGHT CHAT STAGE: Glassmorphic Conversation Stream -->
-          <section class="chat-stream-stage" id="chatStreamStage">
-            
-            <!-- Chat Messages Scrollable Area -->
-            <div class="chat-viewport" id="chatViewport">
-              
-              <!-- Welcome Initial Card (Shown when conversation is empty) -->
-              <div class="welcome-hero" id="welcomeHero">
-                <div class="welcome-star-badge">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="url(#heroStarGrad)"/>
-                    <defs>
-                      <linearGradient id="heroStarGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#38BDF8"/>
-                        <stop offset="1" stop-color="#818CF8"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
-                <h1 class="welcome-title">Ask anything in your universe.</h1>
-                <p class="welcome-subtitle">Ask questions, generate clean algorithms, brainstorm ideas, or analyze complex data with your 3D AI companion.</p>
-                
-                <!-- Quick Suggestion Pills -->
-                <div class="suggestion-chips-container" id="suggestionChips">
-                  <button class="suggestion-chip" data-prompt="Explain the concept of recursion in simple terms.">
-                    <i class="fa-solid fa-code"></i>
-                    <span>Explain recursion in simple terms</span>
-                  </button>
-                  <button class="suggestion-chip" data-prompt="Write a modern Python script to scrape and parse JSON APIs asynchronously.">
-                    <i class="fa-brands fa-python"></i>
-                    <span>Async Python API scraper</span>
-                  </button>
-                  <button class="suggestion-chip" data-prompt="What are the latest breakthroughs in quantum computing?">
-                    <i class="fa-solid fa-atom"></i>
-                    <span>Quantum breakthroughs</span>
-                  </button>
-                  <button class="suggestion-chip" data-prompt="Help me write a persuasive, high-converting launch email.">
-                    <i class="fa-regular fa-envelope"></i>
-                    <span>Product launch email</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Message History Container -->
-              <div class="messages-container" id="messagesContainer">
-                <!-- Dynamically populated user pills and assistant glass cards -->
-              </div>
-
-              <!-- Scroll to bottom button -->
-              <button class="scroll-bottom-btn" id="scrollBottomBtn" title="Jump to recent">
-                <i class="fa-solid fa-arrow-down"></i>
-              </button>
-            </div>
-
-            <!-- Stop Streaming Bar (Visible only while streaming) -->
-            <div class="streaming-control-bar" id="streamingControlBar" style="display: none;">
-              <button class="stop-generating-btn" id="stopGeneratingBtn">
-                <i class="fa-solid fa-square"></i>
-                <span>Stop generation</span>
-              </button>
-            </div>
-
-            <!-- Sleek Futuristic Chat Input Area -->
-            <footer class="chat-input-area" id="chatInputArea">
-              <!-- Attached Files Preview Container -->
-              <div class="attached-files-container" id="attachedFilesContainer" style="display: none;"></div>
-
-              <div class="input-glass-pill-wrapper">
-                <!-- Native PC File Picker -->
-                <input 
-                  type="file" 
-                  id="fileUploadInput" 
-                  multiple 
-                  accept=".txt,.py,.js,.html,.css,.json,.csv,.md,.sql,.pdf,.png,.jpg,.jpeg,.webp" 
-                  style="display: none;"
-                  aria-label="Upload files from PC"
-                >
-                
-                <!-- Attachment Action Button -->
-                <button class="input-action-btn" id="attachmentBtn" title="Upload files or images from your PC">
-                  <i class="fa-solid fa-paperclip"></i>
-                </button>
-
-                <!-- Voice Input Microphone Button -->
-                <button class="input-action-btn" id="voiceMicBtn" title="Speech to text dictation">
-                  <i class="fa-solid fa-microphone"></i>
-                </button>
-
-                <!-- Prompt Input Textarea -->
-                <textarea 
-                  id="promptInput" 
-                  placeholder="Ask anything..." 
-                  rows="1" 
-                  autofocus 
-                  aria-label="Ask NEXA AI prompt"
-                ></textarea>
-
-                <!-- Vibrant Send Arrow Button -->
-                <button class="send-pill-btn" id="sendBtn" disabled title="Send question (Enter)">
-                  <i class="fa-solid fa-arrow-right"></i>
-                </button>
-
-              </div>
-
-              <!-- Input Footer Micro Disclaimer -->
-              <div class="input-micro-disclaimer">
-                <span>NEXA AI V4.5 // Powered by Google Gemini • Real-time 3D Response Engine</span>
-              </div>
-            </footer>
-
-          </section>
-
-          <!-- Far-Right Accent Widget Banner (Matching screenshot) -->
-          <div class="cockpit-right-accent-banner">
-            <div class="accent-text-rot">
-              <span class="accent-plus">+</span>
-              <span class="accent-highlight">Better Questions</span>
-              <span class="accent-sub">Bigger Ideas</span>
-            </div>
+          <div class="welcome-logo-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+              <path d="M20 3v4"></path>
+              <path d="M22 5h-4"></path>
+              <path d="M4 17v2"></path>
+              <path d="M5 18H3"></path>
+            </svg>
+            <span>Powered by Google Gemini</span>
           </div>
 
+          <h1 class="welcome-title">Experience intelligence with the next-gen AI chatbot</h1>
+          <p class="welcome-subtitle">Ask questions, architect codebases, brainstorm creative breakthroughs, or analyze complex data in seconds.</p>
+
+          <div class="hero-cta-group">
+            <button class="hero-pill-dark" id="heroStartBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+              </svg>
+              <span>Start Building</span>
+            </button>
+            <button class="hero-pill-light" id="heroExploreBtn">
+              <span>Explore capabilities</span>
+            </button>
+          </div>
+
+          <!-- Suggestions Grid matching Vercel -->
+          <div class="suggestions-grid" id="suggestionsGrid">
+            
+            <div class="suggestion-card" data-prompt="Write a modern React hook for real-time cursor tracking with smooth physics, spring animation, and custom Canvas integration.">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m18 16 4-4-4-4"></path>
+                    <path d="m6 8-4 4 4 4"></path>
+                    <path d="m14.5 4-5 16"></path>
+                  </svg>
+                  <span class="suggestion-prompt">Write a modern React hook for real-time cursor tracking</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </div>
+              <span class="suggestion-desc">With smooth physics, spring animation, and custom Canvas integration</span>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Explain how neural agent platforms work, including reasoning loops, memory, and tool invocation.">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+                    <path d="M9 18h6"></path>
+                    <path d="M10 22h4"></path>
+                  </svg>
+                  <span class="suggestion-prompt">Explain how neural agent platforms work</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </div>
+              <span class="suggestion-desc">Breakdown of reasoning loops, memory, and tool invocation</span>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Draft an executive pitch for an AI product with clear value proposition, market differentiation, and roadmap.">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"></path>
+                    <path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"></path>
+                    <path d="m2.3 2.3 7.286 7.286"></path>
+                    <circle cx="11" cy="11" r="2"></circle>
+                  </svg>
+                  <span class="suggestion-prompt">Draft an executive pitch for an AI product</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </div>
+              <span class="suggestion-desc">Clear value proposition, market differentiation, and roadmap</span>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Architect a serverless full-stack app on Vercel & Render with best practices for scalability, security, and streaming APIs.">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"></path>
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  <span class="suggestion-prompt">Architect a serverless full-stack app on Vercel & Render</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </div>
+              <span class="suggestion-desc">Best practices for scalability, security, and streaming APIs</span>
+            </div>
+
+          </div>
         </div>
 
-      </main>
+        <!-- Messages Inner Viewport (Shown when chatting) -->
+        <div class="messages-inner" id="messagesInner" style="display: none;">
+          <!-- Dynamically appended user pills and assistant responses -->
+        </div>
 
+        <!-- Scroll to bottom -->
+        <button class="scroll-bottom-btn" id="scrollBottomBtn" title="Scroll down">
+          <i class="fa-solid fa-arrow-down"></i>
+        </button>
+
+      </div>
+
+      <!-- Stop Streaming Control -->
+      <div class="streaming-control-bar" id="streamingControlBar" style="display: none;">
+        <button class="stop-generating-btn" id="stopGeneratingBtn">
+          <i class="fa-solid fa-square"></i>
+          <span>Stop generating</span>
+        </button>
+      </div>
+
+      <!-- Chat Input Area matching Vercel -->
+      <footer class="input-container-wrapper" id="inputContainerWrapper">
+        
+        <!-- Attached Files Preview Bar -->
+        <div class="attached-files-container" id="attachedFilesContainer" style="display: none;"></div>
+
+        <div class="input-box">
+          <!-- Hidden PC Native File Picker -->
+          <input 
+            type="file" 
+            id="fileUploadInput" 
+            multiple 
+            accept=".txt,.py,.js,.html,.css,.json,.csv,.md,.sql,.pdf,.png,.jpg,.jpeg,.webp" 
+            style="display: none;"
+          >
+
+          <!-- Paperclip File Upload Button -->
+          <!-- Paperclip File Upload Button -->
+          <button type="button" class="input-util-btn" id="attachmentBtn" title="Upload photos, documents, code from PC">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paperclip">
+              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+
+          <!-- Voice Mic Dictation Button -->
+          <button type="button" class="input-util-btn" id="voiceMicBtn" title="Speak to dictate">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" x2="12" y1="19" y2="22"></line>
+            </svg>
+          </button>
+
+          <!-- Textarea -->
+          <textarea 
+            class="chat-textarea" 
+            id="promptInput" 
+            rows="1" 
+            placeholder="Type your message here..." 
+            autofocus
+          ></textarea>
+
+          <!-- Send Button matching Vercel -->
+          <button type="button" class="send-btn" id="sendBtn" disabled title="Send message (Enter)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up">
+              <path d="m5 12 7-7 7 7"></path>
+              <path d="M12 19V5"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="input-disclaimer">
+          AI Chatbot can make mistakes. Verify important information.
+        </div>
+      </footer>
+
+    </main>
+
+    <!-- Floating 3D Reactive AI Companion (Switches state fast on think/answer) -->
+    <div class="floating-robot-companion" id="floatingRobotCompanion" title="3D Interactive AI Companion">
+      <div class="floating-robot-avatar">
+        <img src="assets/robot_idle.jpg" alt="3D AI Companion" id="robotDisplayImg" class="floating-robot-img">
+        <span class="floating-robot-pulse" id="robotPulseDot"></span>
+      </div>
+      <div class="floating-robot-info">
+        <div class="floating-robot-name">3D Companion</div>
+        <div class="floating-robot-status" id="robotStatusText">Ready</div>
+      </div>
     </div>
 
   </div>
 
-  <!-- Scripts -->
+  <!-- Application Controller -->
   <script src="app.js"></script>
 </body>
 </html>
